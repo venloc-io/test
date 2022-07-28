@@ -8,14 +8,8 @@ on:
 jobs:
   add-to-project:
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Add issue request to project
-        uses: actions/add-to-project@main
-        with:
-          project-url: ${{ secrets.ADD_TO_PROJECT_PR_URL }}
-          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
 
+    steps:
       - name: Send telegram message on issue open
         uses: appleboy/telegram-action@master
         with:
