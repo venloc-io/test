@@ -1,0 +1,101 @@
+# Automate, customize, and execute your software development workflows right in your repository with GitHub Actions.
+# Documentation: https://docs.github.com/en/actions
+
+name: build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+
+    steps:
+      - uses: actions/checkout@v3.0.2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3.3.0
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: yarn install
+
+      #    - name: Fix code style linting errors
+      #      id: lint-fix
+      #      run: npm run lint:fix
+      #      continue-on-error: true
+      #
+      #    - name: Commit fixed linting errors
+      #      id: commit
+      #      uses: stefanzweifel/git-auto-commit-action@v4
+      #      with:
+      #        commit_message: "ci: fix code style linting errors"
+
+      - name: Lint code
+        id: lint
+        run: npm run lint
+
+  test:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+
+    steps:
+      - uses: actions/checkout@v3.0.2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3.3.0
+        with:
+          node-version: ${{ matrix.node-version }}
+
+
+
+  build:
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+
+    needs: lint
+
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]
+
+    steps:
+      - uses: actions/checkout@v3.0.2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3.3.0
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        id: install-dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm install
+
+      - name: Try to build the packages
+        id: build-packages
+        run: npm run build:ci
+
+      - name: Send Slack notifications
+        uses: act10ns/slack@v1
+        if: failure()
+        with:
+          status: ${{ job.status }}
+          steps: ${{ toJson(steps) }}
+          channel: "#tiptap-notifications"
