@@ -15,8 +15,6 @@ jobs:
         with:
           project-url: ${{ secrets.ADD_TO_PROJECT_PR_URL }}
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-          labeled: bug, needs-triage
-          label-operator: OR
 
       - name: Send telegram message on issue open
         uses: appleboy/telegram-action@master
